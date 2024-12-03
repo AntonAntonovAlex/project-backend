@@ -1,5 +1,6 @@
 'use strict';
 
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
@@ -10,10 +11,34 @@ const config = require(path.resolve(__dirname, '..', '..', 'config', 'config.jso
 const db = {};
 
 let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+//if (config.use_env_variable) {
+//  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+//} else {
+
+if (process.env.DATABASE_URL) {
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    protocol: 'postgres',
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+  });
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  //тут я не менял, остаётся
+  //sequelize = new Sequelize(config.database, config.username, config.password, config);
+  const config = require(path.resolve(__dirname, '..', '..', 'config', 'config.json'))[env];
+  sequelize = new Sequelize(config.database, config.username, config.password, {
+    host: config.host,
+    dialect: 'postgres',
+    port: config.port,
+    dialectOptions: {
+      ssl: false, // Отключаем SSL для локальной разработки
+    },
+    // Здесь не добавляем ssl для локальной разработки
+  });
 }
 
 fs
