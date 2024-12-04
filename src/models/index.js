@@ -11,11 +11,11 @@ const config = require(path.resolve(__dirname, '..', '..', 'config', 'config.jso
 const db = {};
 
 let sequelize;
-//if (config.use_env_variable) {
-//  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-//} else {
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
 
-if (env === 'production' && process.env.DATABASE_URL) {
+/*if (env === 'production' && process.env.DATABASE_URL) {
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     protocol: 'postgres',
@@ -26,19 +26,19 @@ if (env === 'production' && process.env.DATABASE_URL) {
       },
     },
   });
-} else {
+} else {*/
   //тут я не менял, остаётся
-  //sequelize = new Sequelize(config.database, config.username, config.password, config);
-  const config = require(path.resolve(__dirname, '..', '..', 'config', 'config.json'))[env];
-  sequelize = new Sequelize(config.database, config.username, config.password, {
-    host: config.host,
-    dialect: 'postgres',
-    port: config.port,
-    dialectOptions: {
-      ssl: false, // Отключаем SSL для локальной разработки
-    },
+  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  //const config = require(path.resolve(__dirname, '..', '..', 'config', 'config.json'))[env];
+  //sequelize = new Sequelize(config.database, config.username, config.password, {
+    //host: config.host,
+    //dialect: 'postgres',
+    //port: config.port,
+    //dialectOptions: {
+    //  ssl: false, // Отключаем SSL для локальной разработки
+    //},
     // Здесь не добавляем ssl для локальной разработки
-  });
+  //});
 }
 
 fs
