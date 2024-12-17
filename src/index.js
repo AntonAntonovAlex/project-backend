@@ -3,6 +3,7 @@ const cors = require('cors');
 const express = require('express');
 const app = express();
 const userRoutes = require('./routes/userRoutes');
+const templateRoutes = require('./routes/templatesRoutes');
 const { sequelize } = require('./models');
 
 app.use(cors({
@@ -13,6 +14,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use('/users', userRoutes);
+app.use('/', templateRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
