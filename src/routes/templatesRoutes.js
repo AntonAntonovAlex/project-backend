@@ -4,7 +4,7 @@ const { createTemplate, getAllTemplates, getTemplateById, updateTemplate, delete
 const authenticate = require('../middlewares/authenticate');
 
 router.post('/template/create', authenticate, createTemplate);
-router.get('/template', authenticate, getAllTemplates);
+router.get('/template', getAllTemplates);
 router.get('/template/:id', authenticate, getTemplateById);
 router.put('/template/:id', authenticate, updateTemplate);
 router.delete('/template/:id', authenticate, deleteTemplate);

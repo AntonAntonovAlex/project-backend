@@ -1,4 +1,4 @@
-const { Template } = require('../models');
+const { Template, User } = require('../models');
 const CUSTOM_FIELD_TYPES = ['string', 'textarea', 'int', 'checkbox'];
 NUMBER_OF_QUESTIONS = 4;
 
@@ -23,6 +23,7 @@ function cleaneTemplates(templates) {
             }
           };
         });
+        cleanedTemplate.authorName = template.author ? template.author.name : null;
         return cleanedTemplate;
     });
     return cleanedTemplates;
@@ -95,6 +96,13 @@ exports.getAllTemplates = async (req, res) => {
         where: {
           isPublic: true,
         },
+        include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['name'],
+            },
+          ],
       });
   
       const cleanedTemplates = cleaneTemplates(templates);

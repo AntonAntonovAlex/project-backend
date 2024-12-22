@@ -12,5 +12,9 @@ module.exports = (sequelize, DataTypes) => {
     user.password = await bcrypt.hash(user.password, 10);
   });
 
+  User.associate = (models) => {
+    User.hasMany(models.Template, { foreignKey: 'userId', as: 'templates' });
+  };
+
   return User;
 };
