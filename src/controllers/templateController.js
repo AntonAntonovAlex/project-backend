@@ -118,26 +118,36 @@ exports.getAllTemplates = async (req, res) => {
 };
 
 exports.getTemplateById = async (req, res) => {
-    try {
-      const { id } = req.params;
-  
-      const template = await Template.findByPk(id);
-  
-      if (!template) {
-        return res.status(404).json({
-          message: 'Template not found',
-        });
-      };
-  
-      res.status(200).json({
-        message: 'Template retrieved successfully',
-        template: template,
-      });
-    } catch (error) {
-      res.status(500).json({
-        error: error.message,
+  try {
+    const { id } = req.params;
+
+    const template = await Template.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['name'],
+        },
+      ],
+    });
+
+    if (!template) {
+      return res.status(404).json({
+        message: 'Template not found',
       });
     };
+
+    const cleanedTemplate = cleaneTemplates([template]);
+
+    res.status(200).json({
+      message: 'Template retrieved successfully',
+      template: cleanedTemplate[0],
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
 };
 
 exports.deleteTemplate = async (req, res) => {
