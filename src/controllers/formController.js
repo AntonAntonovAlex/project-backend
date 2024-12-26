@@ -80,3 +80,20 @@ exports.deleteForm = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+exports.getFormsByTemplateId = async (req, res) => {
+    const { templateId } = req.params;
+  
+    try {
+      const forms = await Form.findAll({ where: { templateId } });
+  
+      if (!forms.length) {
+        return res.status(404).json({ message: 'No filled forms found for this template.' });
+      }
+  
+      res.status(200).json(forms);
+    } catch (error) {
+      console.error('Error fetching filled forms:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+};
