@@ -10,7 +10,7 @@ exports.addComment = async (req, res) => {
     }
 
     const comment = await Comment.create({ text, templateId, userId });
-    res.status(201).json(comment);
+    res.status(201).json({ message: 'Comment added successfully!', comment });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to create comment.', error });
