@@ -7,6 +7,7 @@ const templateRoutes = require('./routes/templatesRoutes');
 const topicRoutes = require('./routes/topicRoutes');
 const formRoutes = require('./routes/formRoutes');
 const commentRoutes = require('./routes/commentsRoutes');
+const likeRoutes = require('./routes/likesRoutes');
 const { sequelize } = require('./models');
 
 app.use(cors({
@@ -21,6 +22,7 @@ app.use('/', templateRoutes);
 app.use('/', topicRoutes);
 app.use('/', formRoutes);
 app.use('/', commentRoutes);
+app.use('/', likeRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
