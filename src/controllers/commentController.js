@@ -1,4 +1,5 @@
 const { Comment, User } = require('../models');
+const commentService = require('../services/commentService');
 
 exports.addComment = async (req, res) => {
   try {
@@ -10,9 +11,10 @@ exports.addComment = async (req, res) => {
     }
 
     const comment = await Comment.create({ text, templateId, userId });
+
+    commentService.addComment(comment);
     res.status(201).json({ message: 'Comment added successfully!', comment });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: 'Failed to create comment.', error });
   }
 };
@@ -28,7 +30,6 @@ exports.getCommentsByTemplateId = async (req, res) => {
 
     res.status(200).json(comments);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: 'Failed to fetch comments.', error });
   }
 };
