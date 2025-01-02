@@ -15,8 +15,15 @@ module.exports = {
         unique: true
       }
     });
+
+    await queryInterface.bulkInsert('Topics', [
+      { value: 'Education' },
+      { value: 'Test' },
+      { value: 'Other' }
+    ]);
   },
   async down(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete('Topics', null, {});
     await queryInterface.dropTable('Topics');
   }
 };
