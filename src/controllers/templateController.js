@@ -157,6 +157,7 @@ exports.deleteTemplate = async (req, res) => {
       const { id } = req.params;
   
       const template = await Template.findByPk(id);
+      const user = await User.findByPk(req.user.id);
   
       if (!template) {
         return res.status(404).json({
@@ -164,7 +165,7 @@ exports.deleteTemplate = async (req, res) => {
         });
       }
 
-      if (template.userId !== req.user.id && !req.user.isAdmin) {
+      if (template.userId !== req.user.id && user.role !== 'admin') {
         return res.status(403).json({
           message: 'Forbidden: You are not allowed to delete this template',
         });
