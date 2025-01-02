@@ -1,6 +1,7 @@
-const { Template, User } = require('../models');
+const { Template, User, Form } = require('../models');
+const { sequelize } = require('../models');
 const CUSTOM_FIELD_TYPES = ['string', 'textarea', 'int', 'checkbox'];
-NUMBER_OF_QUESTIONS = 4;
+const NUMBER_OF_QUESTIONS = 4;
 
 function cleaneTemplates(templates) {
     const cleanedTemplates = templates.map((template) => {
@@ -24,6 +25,7 @@ function cleaneTemplates(templates) {
           };
         });
         cleanedTemplate.authorName = template.author ? template.author.name : null;
+        cleanedTemplate.formCount = template.dataValues.formCount;
         return cleanedTemplate;
     });
     return cleanedTemplates;
@@ -253,4 +255,58 @@ exports.updateTemplate = async (req, res) => {
         error: error.message,
       });
     };
+};
+
+exports.getLatestTemplates = async (req, res) => {
+  try {
+    const templates = await Template.findAll({
+      where: { isPublic: true },
+      include: [
+        { model: User, as: 'author', attributes: ['name'] },
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: 5,
+    });
+
+    const cleanedTemplates = cleaneTemplates(templates);
+
+    res.status(200).json({
+      message: 'Latest templates retrieved successfully',
+      templates: cleanedTemplates,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getMostPopularTemplates = async (req, res) => {
+  try {
+    const templates = await Template.findAll({
+      where: { isPublic: true },
+      attributes: {
+        include: [
+          [
+            sequelize.literal(`(
+              SELECT COUNT(*)
+              FROM "Forms"
+              WHERE "Forms"."templateId" = "Template"."id"
+            )`),
+            'formCount',
+          ],
+        ],
+      },
+      include: [{ model: User, as: 'author', attributes: ['name'] }],
+      order: [[sequelize.literal('"formCount"'), 'DESC']],
+      limit: 5,
+    });
+
+    const cleanedTemplates = cleaneTemplates(templates);
+
+    res.status(200).json({
+      message: 'Most popular templates retrieved successfully',
+      templates: cleanedTemplates,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
