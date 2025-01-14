@@ -62,6 +62,74 @@ commentService.onCommentAdded((comment) => {
   });
 });
 
+
+
+const axios = require('axios');
+
+app.post('/api/salesforce', async (req, res) => {
+  try {
+    const { accountName, phone, firstName, lastName, email } = req.body;
+    const tokenResponse = await axios.post(
+      process.env.SALESFORCE_ROUTE,
+      new URLSearchParams({
+        grant_type: 'password',
+        client_id: process.env.SALESFORCE_CLIENT_ID,
+        client_secret: process.env.SALESFORCE_CLIENT_SECRET,
+        username: process.env.SALESFORCE_USERNAME,
+        password: process.env.SALESFORCE_PASSWORD,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
+
+    const { access_token: accessToken, instance_url: instanceUrl } = tokenResponse.data;
+    const accountResponse = await axios.post(
+      `${instanceUrl}/services/data/v57.0/sobjects/Account/`,
+      {
+        Name: accountName,
+        Phone: phone,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const accountId = accountResponse.data.id;
+
+    await axios.post(
+      `${instanceUrl}/services/data/v57.0/sobjects/Contact/`,
+      {
+        FirstName: firstName,
+        LastName: lastName,
+        Email: email,
+        Phone: phone,
+        AccountId: accountId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    res.status(200).json({ message: 'Account and Contact created successfully!' });
+  } catch (error) {
+    console.error('Error interacting with Salesforce:', error.response?.data || error.message);
+    res.status(500).json({ error: 'Failed to interact with Salesforce' });
+  }
+});
+
+
+
+
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, async () => {
   console.log(`Server is running on http://localhost:${PORT}`);

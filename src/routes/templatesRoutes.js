@@ -8,6 +8,7 @@ const {
     deleteTemplate,
     getLatestTemplates,
     getMostPopularTemplates,
+    getTemplatesByUserId,
  } = require('../controllers/templateController');
 const authenticate = require('../middlewares/authenticate');
 
@@ -18,5 +19,6 @@ router.put('/template/:id', authenticate, updateTemplate);
 router.delete('/template/:id', authenticate, deleteTemplate);
 router.get('/templates/latest', getLatestTemplates);
 router.get('/templates/popular', getMostPopularTemplates);
+router.get('/templates', authenticate, getTemplatesByUserId);
 
 module.exports = router;

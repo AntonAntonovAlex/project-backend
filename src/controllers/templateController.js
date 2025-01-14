@@ -311,3 +311,32 @@ exports.getMostPopularTemplates = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getTemplatesByUserId = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const templates = await Template.findAll({
+      where: { userId },
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['name'],
+        },
+      ],
+    });
+
+    const cleanedTemplates = cleaneTemplates(templates);
+
+    res.status(200).json({
+      message: 'Templates retrieved successfully',
+      templates: cleanedTemplates,
+    });
+  } catch (error) {
+    console.error('Error fetching templates by user ID:', error);
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};
