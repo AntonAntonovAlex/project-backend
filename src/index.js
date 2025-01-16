@@ -62,8 +62,6 @@ commentService.onCommentAdded((comment) => {
   });
 });
 
-
-
 const axios = require('axios');
 
 app.post('/api/salesforce', async (req, res) => {
@@ -128,6 +126,141 @@ app.post('/api/salesforce', async (req, res) => {
 
 
 
+const jiraAxios = axios.create({
+  baseURL: 'https://antonmogilev.atlassian.net/rest/api/3',
+  headers: {
+    Authorization: `Basic ${process.env.JIRA_TOKEN}`,
+    'Content-Type': 'application/json',
+  },
+});
+
+const findUserByEmail = async (email) => {
+  try {
+    const response = await jiraAxios.get(`/user/search?query=${email}`);
+    return response.data.length > 0 ? response.data[0] : null;
+  } catch (error) {
+    throw new Error('Failed to search for user in Jira');
+  }
+};
+
+const createUser = async (email, displayName) => {
+  try {
+    const userData = {
+      emailAddress: email,
+      displayName,
+      products: ["jira-servicedesk"]
+    };
+
+    const response = await jiraAxios.post('/user', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating user:', error.response?.data || error.message);
+    throw new Error('Failed to create user in Jira');
+  }
+};
+
+const getTicketsByUserId = async (accountId) => {
+  try {
+    const response = await jiraAxios.get('/search', {
+      params: {
+        jql: `assignee=${accountId} OR reporter=${accountId}`,
+      },
+    });
+    return response.data.issues;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getUserTickets = async (email) => {
+  try {
+    const user = await findUserByEmail(userEmail);
+    const accountId = user.accountId;
+    const tickets = await getTicketsByUserId(accountId);
+    return tickets;
+  } catch (error) {
+    throw error;
+  }
+};
+
+app.get('/api/jira/tickets', async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const tickets = await getUserTickets(email);
+
+    res.status(200).json({ tickets });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch user tickets' });
+  }
+});
+
+app.post('/api/jira/ticket', async (req, res) => {
+  try {
+    const { summary, priority, description, pageUrl, userEmail, userName } = req.body;
+
+    let user = await findUserByEmail(userEmail);
+
+    if (!user) {
+      user = await createUser(userEmail, userName);
+    };
+
+    const ticketData = {
+      fields: {
+        project: { key: "CP" },
+        summary,
+        issuetype: { name: 'Task' },
+        priority: { name: priority },
+        description: {
+          type: "doc",
+          version: 1,
+          content: [
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: description
+                }
+              ]
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "Ссылка на страницу: "
+                },
+                {
+                  type: "text",
+                  text: pageUrl,
+                  marks: [
+                    {
+                      type: "link",
+                      attrs: {
+                        href: pageUrl
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        reporter: { id: user.accountId },
+      },
+    };
+
+    const jiraResponse = await jiraAxios.post('/issue', ticketData);
+    res.status(201).json({ message: 'Ticket created successfully!', data: jiraResponse.data });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create ticket in Jira' });
+  }
+});
 
 
 const PORT = process.env.PORT || 3000;
