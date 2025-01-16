@@ -124,10 +124,8 @@ app.post('/api/salesforce', async (req, res) => {
   }
 });
 
-
-
 const jiraAxios = axios.create({
-  baseURL: 'https://antonmogilev.atlassian.net/rest/api/3',
+  baseURL: process.env.JIRA_ROUTE,
   headers: {
     Authorization: `Basic ${process.env.JIRA_TOKEN}`,
     'Content-Type': 'application/json',
@@ -261,7 +259,6 @@ app.post('/api/jira/ticket', async (req, res) => {
     res.status(500).json({ error: 'Failed to create ticket in Jira' });
   }
 });
-
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, async () => {
